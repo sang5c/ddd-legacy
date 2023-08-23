@@ -23,4 +23,19 @@ class ProductSteps {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(response.header("Location")).isNotBlank();
     }
+
+    public static ExtractableResponse<Response> 상품_가격_변경_요청(String uri) {
+        return RestAssured
+                .given().log().all()
+                .body("{\"price\":2000}")
+                .contentType("application/json")
+                .when().log().all()
+                .put(uri + "/price")
+                .then().log().all()
+                .extract();
+    }
+
+    public static void 상품_가격_변경_성공(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+    }
 }
