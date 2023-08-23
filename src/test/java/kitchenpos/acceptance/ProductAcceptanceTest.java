@@ -5,6 +5,8 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
+
 import static kitchenpos.acceptance.ProductSteps.*;
 
 class ProductAcceptanceTest extends AcceptanceTest {
@@ -16,7 +18,7 @@ class ProductAcceptanceTest extends AcceptanceTest {
     @DisplayName("상품 등록")
     @Test
     void createProduct() {
-        var 상품_등록_응답 = 상품_등록_요청();
+        var 상품_등록_응답 = 상품_등록_요청("상품A", BigDecimal.valueOf(1000));
 
         상품_등록_성공(상품_등록_응답);
     }
@@ -29,11 +31,28 @@ class ProductAcceptanceTest extends AcceptanceTest {
     @DisplayName("상품 가격 변경")
     @Test
     void changePrice() {
-        ExtractableResponse<Response> 상품_등록_응답 = 상품_등록_요청();
+        ExtractableResponse<Response> 상품_등록_응답 = 상품_등록_요청("상품A", BigDecimal.valueOf(1000));
         String uri = 상품_등록_응답.header("Location");
 
         var 상품_가격_변경_응답 = 상품_가격_변경_요청(uri);
 
         상품_가격_변경_성공(상품_가격_변경_응답);
+    }
+
+    /**
+     * Given 상품을 등록하고
+     * And   다른 상품을 등록하고
+     * When 상품을 목록을 조회하면
+     * Then 등록한 상품 목록을 응답받는다
+     */
+    @DisplayName("상품 목록 조회")
+    @Test
+    void getProducts() {
+        상품_등록_요청("짜장면", BigDecimal.valueOf(1000));
+        상품_등록_요청("짬뽕", BigDecimal.valueOf(1000));
+
+        ExtractableResponse<Response> 상품_목록_조회_응답 = 상품_목록_조회_요청();
+
+        상품_목록_조회_성공(상품_목록_조회_응답, "짜장면", "짬뽕");
     }
 }
