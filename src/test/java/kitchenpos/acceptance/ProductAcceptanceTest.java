@@ -12,8 +12,9 @@ import static kitchenpos.acceptance.ProductSteps.*;
 class ProductAcceptanceTest extends AcceptanceTest {
 
     /**
-     * When 상품 등록을 요청 하면
-     * Then 상품 등록이 성공한다.
+     * Given
+     * When  상품 등록을 요청 하면
+     * Then  상품 등록이 성공한다.
      */
     @DisplayName("상품 등록")
     @Test
@@ -25,13 +26,13 @@ class ProductAcceptanceTest extends AcceptanceTest {
 
     /**
      * Given 상품을 등록하고
-     * When 상품 가격 변경 요청하면
-     * Then 가격 변경이 성공한다
+     * When  상품 가격 변경 요청하면
+     * Then  가격 변경이 성공한다
      */
     @DisplayName("상품 가격 변경")
     @Test
     void changePrice() {
-        ExtractableResponse<Response> 상품_등록_응답 = 상품_등록_요청("상품A", BigDecimal.valueOf(1000));
+        var 상품_등록_응답 = 상품_등록_요청("상품A", BigDecimal.valueOf(1000));
         String uri = 상품_등록_응답.header("Location");
 
         var 상품_가격_변경_응답 = 상품_가격_변경_요청(uri);
@@ -41,9 +42,9 @@ class ProductAcceptanceTest extends AcceptanceTest {
 
     /**
      * Given 상품을 등록하고
-     * And   다른 상품을 등록하고
-     * When 상품을 목록을 조회하면
-     * Then 등록한 상품 목록을 응답받는다
+     * And   다른 상품을 등록한 다음
+     * When  상품을 목록을 조회하면
+     * Then  등록한 상품 목록을 응답받는다
      */
     @DisplayName("상품 목록 조회")
     @Test
