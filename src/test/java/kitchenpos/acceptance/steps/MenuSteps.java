@@ -38,4 +38,23 @@ public class MenuSteps {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.CREATED.value());
         assertThat(response.header("Location")).isNotBlank();
     }
+
+    public static ExtractableResponse<Response> 메뉴_가격_변경_요청(String menuId, int menuPrice) {
+        Map<String, Object> body = new HashMap<>();
+        body.put("price", menuPrice);
+
+        return RestAssured
+                .given().log().all()
+                .body(body)
+                .contentType("application/json")
+                .when().log().all()
+                .put("/api/menus/" + menuId + "/price")
+                .then().log().all()
+                .extract();
+    }
+
+    public static void 메뉴_가격_변경_성공(ExtractableResponse<Response> response, int price) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.body().jsonPath().getLong("price")).isEqualTo(price);
+    }
 }
