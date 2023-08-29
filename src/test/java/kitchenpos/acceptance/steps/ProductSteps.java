@@ -1,4 +1,4 @@
-package kitchenpos.acceptance;
+package kitchenpos.acceptance.steps;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ProductSteps {
+public class ProductSteps {
     public static ExtractableResponse<Response> 상품_등록_요청(String name, BigDecimal price) {
         Map<String, Object> body = new HashMap<>();
         body.put("name", name);

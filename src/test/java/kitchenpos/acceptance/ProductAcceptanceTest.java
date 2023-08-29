@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 
-import static kitchenpos.acceptance.ProductSteps.*;
+import static kitchenpos.acceptance.steps.ProductSteps.*;
 
 class ProductAcceptanceTest extends AcceptanceTest {
 
