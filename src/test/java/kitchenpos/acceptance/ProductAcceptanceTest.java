@@ -5,8 +5,6 @@ import io.restassured.response.Response;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-
 import static kitchenpos.acceptance.steps.ProductSteps.*;
 
 class ProductAcceptanceTest extends AcceptanceTest {
@@ -19,7 +17,7 @@ class ProductAcceptanceTest extends AcceptanceTest {
     @DisplayName("상품 등록")
     @Test
     void createProduct() {
-        var 상품_등록_응답 = 상품_등록_요청("상품A", BigDecimal.valueOf(1000));
+        var 상품_등록_응답 = 상품_등록_요청("상품A", 1000);
 
         상품_등록_성공(상품_등록_응답);
     }
@@ -32,7 +30,7 @@ class ProductAcceptanceTest extends AcceptanceTest {
     @DisplayName("상품 가격 변경")
     @Test
     void changePrice() {
-        var 상품_등록_응답 = 상품_등록_요청("상품A", BigDecimal.valueOf(1000));
+        var 상품_등록_응답 = 상품_등록_요청("상품A", 1000);
         String uri = 상품_등록_응답.header("Location");
 
         var 상품_가격_변경_응답 = 상품_가격_변경_요청(uri);
@@ -49,8 +47,8 @@ class ProductAcceptanceTest extends AcceptanceTest {
     @DisplayName("상품 목록 조회")
     @Test
     void getProducts() {
-        상품_등록_요청("짜장면", BigDecimal.valueOf(1000));
-        상품_등록_요청("짬뽕", BigDecimal.valueOf(1000));
+        상품_등록_요청("짜장면", 1000);
+        상품_등록_요청("짬뽕", 1000);
 
         ExtractableResponse<Response> 상품_목록_조회_응답 = 상품_목록_조회_요청();
 

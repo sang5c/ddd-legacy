@@ -5,14 +5,13 @@ import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
 import org.springframework.http.HttpStatus;
 
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ProductSteps {
-    public static ExtractableResponse<Response> 상품_등록_요청(String name, BigDecimal price) {
+    public static ExtractableResponse<Response> 상품_등록_요청(String name, int price) {
         Map<String, Object> body = new HashMap<>();
         body.put("name", name);
         body.put("price", price);
