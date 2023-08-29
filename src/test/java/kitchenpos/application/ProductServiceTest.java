@@ -145,4 +145,15 @@ class ProductServiceTest {
 
         assertThat(menu.isDisplayed()).isFalse();
     }
+
+    @DisplayName("상품 목록을 조회할 수 있다")
+    @Test
+    void list() {
+        Product product = ProductFixtures.createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
+        given(productRepository.findAll()).willReturn(List.of(product));
+
+        List<Product> products = productService.findAll();
+
+        assertThat(products).containsExactly(product);
+    }
 }
