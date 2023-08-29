@@ -1,6 +1,8 @@
 package kitchenpos.application;
 
 import kitchenpos.domain.*;
+import kitchenpos.fixture.MenuFixtures;
+import kitchenpos.fixture.ProductFixtures;
 import kitchenpos.infra.PurgomalumClient;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -38,7 +40,7 @@ class ProductServiceTest {
     @DisplayName("이름이 비어있으면 에러가 발생한다")
     @Test
     void createWithInvalidName() {
-        Product request = createProductRequest(null, BigDecimal.valueOf(10000));
+        Product request = ProductFixtures.createProductRequest(null, BigDecimal.valueOf(10000));
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -48,7 +50,7 @@ class ProductServiceTest {
     @Test
     void createWithProfanityName() {
         given(purgomalumClient.containsProfanity(any())).willReturn(true);
-        Product request = createProductRequest("메롱", BigDecimal.valueOf(10000));
+        Product request = ProductFixtures.createProductRequest("메롱", BigDecimal.valueOf(10000));
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -57,7 +59,7 @@ class ProductServiceTest {
     @DisplayName("가격이 0보다 작으면 에러가 발생한다")
     @Test
     void createWithNegativePrice() {
-        Product request = createProductRequest("한우", BigDecimal.valueOf(-10000));
+        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(-10000));
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -66,7 +68,7 @@ class ProductServiceTest {
     @DisplayName("가격이 비어있으면 에러가 발생한다")
     @Test
     void createWithEmptyPrice() {
-        Product request = createProductRequest("한돈", null);
+        Product request = ProductFixtures.createProductRequest("한돈", null);
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -77,7 +79,7 @@ class ProductServiceTest {
     void create() {
         String name = "한우";
         BigDecimal price = BigDecimal.valueOf(10000);
-        Product request = createProductRequest(name, price);
+        Product request = ProductFixtures.createProductRequest(name, price);
 
         given(purgomalumClient.containsProfanity(any())).willReturn(false);
         given(productRepository.save(any())).willReturn(request);
@@ -91,7 +93,7 @@ class ProductServiceTest {
     @DisplayName("가격 변경시 상품 가격이 비어있거나 0보다 작으면 예외가 발생한다")
     @Test
     void changePriceWithEmptyPrice() {
-        Product request = createProductRequest("한우", null);
+        Product request = ProductFixtures.createProductRequest("한우", null);
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -100,7 +102,7 @@ class ProductServiceTest {
     @DisplayName("가격 변경시 상품 가격이 0보다 작으면 예외가 발생한다")
     @Test
     void changePriceWithNegativePrice() {
-        Product request = createProductRequest("한우", BigDecimal.valueOf(-10000));
+        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(-10000));
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -109,7 +111,7 @@ class ProductServiceTest {
     @DisplayName("가격 변경시 상품이 존재하지 않으면 예외가 발생한다")
     @Test
     void changePriceWithNotExistProduct() {
-        Product request = createProductRequest("한우", BigDecimal.valueOf(10000));
+        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(10000));
         given(productRepository.findById(any())).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
@@ -120,8 +122,8 @@ class ProductServiceTest {
     @Test
     void changePrice() {
         BigDecimal price = BigDecimal.valueOf(10000);
-        Product request = createProductRequest("한우", price);
-        Product product = createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
+        Product request = ProductFixtures.createProductRequest("한우", price);
+        Product product = ProductFixtures.createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
         given(productRepository.findById(any())).willReturn(Optional.of(product));
 
         Product changedProduct = productService.changePrice(product.getId(), request);
@@ -132,10 +134,10 @@ class ProductServiceTest {
     @DisplayName("상품 가격을 변경했을 때 메뉴 가격이 상품 가격 합보다 크면 메뉴를 숨긴다")
     @Test
     void hideMenuWhenMenuPriceIsGreaterThanProductPriceSum() {
-        Product request = createProductRequest("한우", BigDecimal.valueOf(15000));
-        Product product = createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
-        MenuProduct menuProduct = createMenuProduct(product, 1);
-        Menu menu = createMenu(UUID.randomUUID(), BigDecimal.valueOf(20000), menuProduct);
+        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(15000));
+        Product product = ProductFixtures.createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
+        MenuProduct menuProduct = MenuFixtures.createMenuProduct(product, 1);
+        Menu menu = MenuFixtures.createMenu(UUID.randomUUID(), BigDecimal.valueOf(20000), menuProduct);
         given(productRepository.findById(any())).willReturn(Optional.of(product));
         given(menuRepository.findAllByProductId(any())).willReturn(List.of(menu));
 
@@ -143,33 +145,4 @@ class ProductServiceTest {
 
         assertThat(menu.isDisplayed()).isFalse();
     }
-
-    private static Menu createMenu(UUID id, BigDecimal price, MenuProduct menuProduct) {
-        Menu menu = new Menu();
-        menu.setId(id);
-        menu.setPrice(price);
-        menu.setDisplayed(true);
-        menu.setMenuProducts(List.of(menuProduct));
-        return menu;
-    }
-
-    private static MenuProduct createMenuProduct(Product product, int quantity) {
-        MenuProduct menuProduct = new MenuProduct();
-        menuProduct.setQuantity(quantity);
-        menuProduct.setProduct(product);
-        return menuProduct;
-    }
-
-    private static Product createProductRequest(String name, BigDecimal price) {
-        return createProduct(null, name, price);
-    }
-
-    private static Product createProduct(UUID id, String name, BigDecimal price) {
-        Product product = new Product();
-        product.setId(id);
-        product.setName(name);
-        product.setPrice(price);
-        return product;
-    }
-
 }
