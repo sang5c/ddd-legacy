@@ -19,7 +19,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -48,7 +47,7 @@ class ProductServiceTest {
     @DisplayName("이름에 욕설이 포함되어 있으면 에러가 발생한다")
     @Test
     void createWithProfanityName() {
-        when(purgomalumClient.containsProfanity(any())).thenReturn(true);
+        given(purgomalumClient.containsProfanity(any())).willReturn(true);
         Product request = createProductRequest("메롱", BigDecimal.valueOf(10000));
 
         assertThatThrownBy(() -> productService.create(request))
@@ -80,8 +79,8 @@ class ProductServiceTest {
         BigDecimal price = BigDecimal.valueOf(10000);
         Product request = createProductRequest(name, price);
 
-        when(purgomalumClient.containsProfanity(any())).thenReturn(false);
-        when(productRepository.save(any())).thenReturn(request);
+        given(purgomalumClient.containsProfanity(any())).willReturn(false);
+        given(productRepository.save(any())).willReturn(request);
 
         Product product = productService.create(request);
 
@@ -111,7 +110,7 @@ class ProductServiceTest {
     @Test
     void changePriceWithNotExistProduct() {
         Product request = createProductRequest("한우", BigDecimal.valueOf(10000));
-        when(productRepository.findById(any())).thenReturn(Optional.empty());
+        given(productRepository.findById(any())).willReturn(Optional.empty());
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
                 .isInstanceOf(NoSuchElementException.class);
@@ -123,7 +122,7 @@ class ProductServiceTest {
         BigDecimal price = BigDecimal.valueOf(10000);
         Product request = createProductRequest("한우", price);
         Product product = createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
-        when(productRepository.findById(any())).thenReturn(Optional.of(product));
+        given(productRepository.findById(any())).willReturn(Optional.of(product));
 
         Product changedProduct = productService.changePrice(product.getId(), request);
 
