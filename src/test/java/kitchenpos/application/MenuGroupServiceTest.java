@@ -12,6 +12,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,5 +48,17 @@ class MenuGroupServiceTest {
 
         assertThatThrownBy(() -> menuGroupService.create(menuGroup))
                 .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @DisplayName("메뉴 그룹 목록을 조회한다")
+    @Test
+    void findAll() {
+        MenuGroup menuGroup1 = MenuGroupFixtures.createMenuGroup("그룹1");
+        MenuGroup menuGroup2 = MenuGroupFixtures.createMenuGroup("그룹2");
+        given(menuGroupRepository.findAll()).willReturn(List.of(menuGroup1, menuGroup2));
+
+        List<MenuGroup> groups = menuGroupService.findAll();
+        
+        assertThat(groups).containsExactly(menuGroup1, menuGroup2);
     }
 }
