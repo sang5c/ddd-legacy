@@ -82,4 +82,25 @@ class MenuAcceptanceTest extends AcceptanceTest {
 
         메뉴_숨김_성공(메뉴_숨김_응답);
     }
+
+    /**
+     * Given 상품을 등록하고
+     * And   메뉴 그룹을 등록한 다음
+     * And   메뉴를 등록하고
+     * And   다른 메뉴를 추가로 등록하고
+     * When  메뉴 목록을 조회하면
+     * Then  등록한 메뉴가 조회된다
+     */
+    @DisplayName("메뉴 목록 조회")
+    @Test
+    void listMenus() {
+        var 한우_ID = 상품_등록_요청("한우", 20000).jsonPath().getString("id");
+        var 한식_ID = 메뉴_그룹_등록_요청("한식").jsonPath().getString("id");
+        var 메뉴_ID = 메뉴_등록_요청(한식_ID, 한우_ID, 20000).jsonPath().getString("id");
+        var 메뉴_ID_2 = 메뉴_등록_요청(한식_ID, 한우_ID, 20000).jsonPath().getString("id");
+
+        var 메뉴_목록_응답 = 메뉴_목록_조회_요청();
+
+        메뉴_목록_조회_성공(메뉴_목록_응답, 메뉴_ID, 메뉴_ID_2);
+    }
 }

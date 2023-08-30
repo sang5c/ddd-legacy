@@ -85,4 +85,18 @@ public class MenuSteps {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(response.body().jsonPath().getBoolean("displayed")).isFalse();
     }
+
+    public static ExtractableResponse<Response> 메뉴_목록_조회_요청() {
+        return RestAssured
+                .given().log().all()
+                .when().log().all()
+                .get("/api/menus")
+                .then().log().all()
+                .extract();
+    }
+
+    public static void 메뉴_목록_조회_성공(ExtractableResponse<Response> response, String... menuIds) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.jsonPath().getList("id", String.class)).containsExactly(menuIds);
+    }
 }
