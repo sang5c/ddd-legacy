@@ -1,46 +1,48 @@
 package kitchenpos.application;
 
-import kitchenpos.domain.*;
-import kitchenpos.fixture.MenuFixtures;
-import kitchenpos.fixture.ProductFixtures;
-import kitchenpos.infra.PurgomalumClient;
+import kitchenpos.domain.Menu;
+import kitchenpos.domain.MenuRepository;
+import kitchenpos.domain.Product;
+import kitchenpos.domain.ProductRepository;
+import kitchenpos.fakeobject.InMemoryMenuRepository;
+import kitchenpos.fakeobject.InMemoryProductRepository;
+import kitchenpos.fakeobject.InMemoryProfanityClient;
+import kitchenpos.infra.ProfanityClient;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
+import static kitchenpos.fixture.MenuFixtures.createMenu;
+import static kitchenpos.fixture.MenuFixtures.createMenuProduct;
+import static kitchenpos.fixture.ProductFixtures.createProduct;
+import static kitchenpos.fixture.ProductFixtures.createProductRequest;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.BDDMockito.given;
 
-@ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
 
-    @Mock
     private ProductRepository productRepository;
-
-    @Mock
     private MenuRepository menuRepository;
-
-    @Mock
-    private PurgomalumClient purgomalumClient;
-
-    @InjectMocks
+    private ProfanityClient profanityClient;
     private ProductService productService;
+
+    @BeforeEach
+    void setup() {
+        productRepository = new InMemoryProductRepository();
+        menuRepository = new InMemoryMenuRepository();
+        profanityClient = new InMemoryProfanityClient();
+        productService = new ProductService(productRepository, menuRepository, profanityClient);
+    }
 
     @DisplayName("이름이 비어있으면 에러가 발생한다")
     @Test
     void createWithInvalidName() {
-        Product request = ProductFixtures.createProductRequest(null, BigDecimal.valueOf(10000));
+        Product request = createProductRequest(null, BigDecimal.valueOf(10000));
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -49,8 +51,7 @@ class ProductServiceTest {
     @DisplayName("이름에 욕설이 포함되어 있으면 에러가 발생한다")
     @Test
     void createWithProfanityName() {
-        given(purgomalumClient.containsProfanity(any())).willReturn(true);
-        Product request = ProductFixtures.createProductRequest("메롱", BigDecimal.valueOf(10000));
+        Product request = createProductRequest("메롱", BigDecimal.valueOf(10000));
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -59,7 +60,7 @@ class ProductServiceTest {
     @DisplayName("가격이 0보다 작으면 에러가 발생한다")
     @Test
     void createWithNegativePrice() {
-        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(-10000));
+        Product request = createProductRequest("한우", BigDecimal.valueOf(-10000));
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -68,7 +69,7 @@ class ProductServiceTest {
     @DisplayName("가격이 비어있으면 에러가 발생한다")
     @Test
     void createWithEmptyPrice() {
-        Product request = ProductFixtures.createProductRequest("한돈", null);
+        Product request = createProductRequest("한돈", null);
 
         assertThatThrownBy(() -> productService.create(request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -79,10 +80,7 @@ class ProductServiceTest {
     void create() {
         String name = "한우";
         BigDecimal price = BigDecimal.valueOf(10000);
-        Product request = ProductFixtures.createProductRequest(name, price);
-
-        given(purgomalumClient.containsProfanity(any())).willReturn(false);
-        given(productRepository.save(any())).willReturn(request);
+        Product request = createProductRequest(name, price);
 
         Product product = productService.create(request);
 
@@ -93,7 +91,7 @@ class ProductServiceTest {
     @DisplayName("가격 변경시 상품 가격이 비어있거나 0보다 작으면 예외가 발생한다")
     @Test
     void changePriceWithEmptyPrice() {
-        Product request = ProductFixtures.createProductRequest("한우", null);
+        Product request = createProductRequest("한우", null);
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -102,7 +100,7 @@ class ProductServiceTest {
     @DisplayName("가격 변경시 상품 가격이 0보다 작으면 예외가 발생한다")
     @Test
     void changePriceWithNegativePrice() {
-        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(-10000));
+        Product request = createProductRequest("한우", BigDecimal.valueOf(-10000));
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -111,8 +109,7 @@ class ProductServiceTest {
     @DisplayName("가격 변경시 상품이 존재하지 않으면 예외가 발생한다")
     @Test
     void changePriceWithNotExistProduct() {
-        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(10000));
-        given(productRepository.findById(any())).willReturn(Optional.empty());
+        Product request = productRepository.save(createProductRequest("한우", BigDecimal.valueOf(10000)));
 
         assertThatThrownBy(() -> productService.changePrice(UUID.randomUUID(), request))
                 .isInstanceOf(NoSuchElementException.class);
@@ -121,12 +118,11 @@ class ProductServiceTest {
     @DisplayName("상품 가격을 변경한다")
     @Test
     void changePrice() {
+        Product savedProduct = productRepository.save(createProduct("한우", BigDecimal.valueOf(20000)));
         BigDecimal price = BigDecimal.valueOf(10000);
-        Product request = ProductFixtures.createProductRequest("한우", price);
-        Product product = ProductFixtures.createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
-        given(productRepository.findById(any())).willReturn(Optional.of(product));
+        Product request = createProductRequest("한우", price);
 
-        Product changedProduct = productService.changePrice(product.getId(), request);
+        Product changedProduct = productService.changePrice(savedProduct.getId(), request);
 
         assertThat(changedProduct.getPrice()).isEqualTo(price);
     }
@@ -134,12 +130,9 @@ class ProductServiceTest {
     @DisplayName("상품 가격을 변경했을 때 메뉴 가격이 상품 가격 합보다 크면 메뉴를 숨긴다")
     @Test
     void hideMenuWhenMenuPriceIsGreaterThanProductPriceSum() {
-        Product request = ProductFixtures.createProductRequest("한우", BigDecimal.valueOf(15000));
-        Product product = ProductFixtures.createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
-        MenuProduct menuProduct = MenuFixtures.createMenuProduct(product, 1);
-        Menu menu = MenuFixtures.createMenu(UUID.randomUUID(), BigDecimal.valueOf(20000), menuProduct);
-        given(productRepository.findById(any())).willReturn(Optional.of(product));
-        given(menuRepository.findAllByProductId(any())).willReturn(List.of(menu));
+        Product product = productRepository.save(createProduct("한우", BigDecimal.valueOf(20000)));
+        Menu menu = menuRepository.save(createMenu(BigDecimal.valueOf(20000), createMenuProduct(product, 1)));
+        Product request = createProductRequest("한우", BigDecimal.valueOf(15000));
 
         productService.changePrice(product.getId(), request);
 
@@ -149,8 +142,7 @@ class ProductServiceTest {
     @DisplayName("상품 목록을 조회할 수 있다")
     @Test
     void list() {
-        Product product = ProductFixtures.createProduct(UUID.randomUUID(), "한우", BigDecimal.valueOf(20000));
-        given(productRepository.findAll()).willReturn(List.of(product));
+        Product product = productRepository.save(createProduct("한우", BigDecimal.valueOf(20000)));
 
         List<Product> products = productService.findAll();
 

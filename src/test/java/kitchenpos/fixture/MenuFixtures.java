@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.UUID;
 
 public class MenuFixtures {
+    public static Menu createMenu(BigDecimal price, MenuProduct menuProduct) {
+        return createMenu(UUID.randomUUID(), price, menuProduct);
+    }
+
     public static Menu createMenu(UUID id, BigDecimal price, MenuProduct menuProduct) {
         Menu menu = new Menu();
         menu.setId(id);
