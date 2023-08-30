@@ -57,4 +57,32 @@ public class MenuSteps {
         assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
         assertThat(response.body().jsonPath().getLong("price")).isEqualTo(price);
     }
+
+    public static ExtractableResponse<Response> 메뉴_노출_요청(String menuId) {
+        return RestAssured
+                .given().log().all()
+                .when().log().all()
+                .put("/api/menus/" + menuId + "/display")
+                .then().log().all()
+                .extract();
+    }
+
+    public static void 메뉴_노출_성공(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.body().jsonPath().getBoolean("displayed")).isTrue();
+    }
+
+    public static ExtractableResponse<Response> 메뉴_숨김_요청(String menuId) {
+        return RestAssured
+                .given().log().all()
+                .when().log().all()
+                .put("/api/menus/" + menuId + "/hide")
+                .then().log().all()
+                .extract();
+    }
+
+    public static void 메뉴_숨김_성공(ExtractableResponse<Response> response) {
+        assertThat(response.statusCode()).isEqualTo(HttpStatus.OK.value());
+        assertThat(response.body().jsonPath().getBoolean("displayed")).isFalse();
+    }
 }
